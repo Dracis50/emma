@@ -1,5 +1,5 @@
 
-- [ ] `apt update && apt full-upgrade`
+- [X] `apt update && apt full-upgrade`
 - [ ] Création utilisateur **emma** + sudo + clé SSH
 - [ ] Installation : ufw, fail2ban
 - [ ] Installation : Docker + Docker Compose
