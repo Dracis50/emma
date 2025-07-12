@@ -6,4 +6,4 @@
 - [X] Installation : Node (NVM LTS) + Python 3.12
 - [ ] Timezone `Europe/Madrid`
 - [ ] UFW : ports 22/2222 80 443
-- [ ] fail2ban : jail SSH
+- [X] fail2ban : jail SSH
