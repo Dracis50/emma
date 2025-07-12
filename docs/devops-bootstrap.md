@@ -1,7 +1,7 @@
 
 - [X] `apt update && apt full-upgrade`
 - [X] Création utilisateur **emma** + sudo + clé SSH
-- [ ] Installation : ufw, fail2ban
+- [X] Installation : ufw, fail2ban
 - [ ] Installation : Docker + Docker Compose
 - [ ] Installation : Node (NVM LTS) + Python 3.12
 - [ ] Timezone `Europe/Madrid`
