@@ -3,20 +3,23 @@ version: "3.9"
 services:
   # --------------------- Auth API
   auth:
-    container_name: auth
     build:
-      context: .
-      dockerfile: ./Dockerfile
-    env_file: .env
-    depends_on: [db]
+      context: ./services/auth_service      # <-- chemin du service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - db
+    networks:
+      - backend
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.auth.rule=Host(`auth.${DOMAIN}`)"
-      - "traefik.http.routers.auth.entrypoints=websecure"
-      - "traefik.http.routers.auth.tls.certresolver=le"
-      - "traefik.http.services.auth.loadbalancer.server.port=8000"
-    networks: [backend]
-    restart: always
+      - traefik.enable=true
+      - traefik.http.routers.auth.rule=Host(`auth.${DOMAIN}`)
+      - traefik.http.routers.auth.entrypoints=websecure
+      - traefik.http.routers.auth.tls.certresolver=le
+      - traefik.http.services.auth.loadbalancer.server.port=8000
 
   # --------------------- PostgreSQL
   db:
