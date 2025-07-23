@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  # --------------------- Auth API
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file: .env
+    depends_on: [db]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.${DOMAIN}`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls.certresolver=le"
+      - "traefik.http.services.auth.loadbalancer.server.port=8000"
+    networks: [backend]
+    restart: always
+
+  # --------------------- PostgreSQL
+  db:
+    image: postgres:15-alpine
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend]
+    restart: always
+
+  # --------------------- Traefik reverse-proxy
+  reverse-proxy:
+    container_name: reverse-proxy
+    image: traefik:v3.0
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # Entrypoints publics
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # ACME (TLS-ALPN-01) via Let’s Encrypt
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--certificatesresolvers.le.acme.email=${LE_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+
+      # ---- DEBUG / API ----
+      - "--api.dashboard=true"      # dashboard HTML
+      - "--api.insecure=true"       # (temporaire) expo sans auth sur 8080
+      - "--log.level=INFO"
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"                 # <- port de l’API/dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+    networks: [ backend ]
+    restart: always
+
+networks:
+  backend:
+
+volumes:
+  pgdata:
+  letsencrypt:

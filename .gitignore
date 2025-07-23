@@ -1,0 +1,13 @@
+# python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# env
+.env
+env/
+.venv/
+
+# docker
+*.log
+acme.json
