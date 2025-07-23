@@ -1,0 +1,53 @@
+name: CI
+        
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+          
+jobs:
+  test: 
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: emma
+          POSTGRES_PASSWORD: emma_db_devpass
+          POSTGRES_DB: emma  
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U emma"
+          --health-interval=10s 
+          --health-timeout=5s
+          --health-retries=5
+    
+    env:
+      DATABASE_URL: postgresql+psycopg2://emma:testpassword@localhost:5432/emma
+      JWT_SECRET: testsecret
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        
+    - name: Install Poetry
+      run: pip install poetry
+          
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-ansi
+
+    - name: Run Alembic migrations
+      run: poetry run alembic upgrade head
+
+    - name: Run lint
+      run: make lint
+      
+    - name: Run tests
+      run: poetry run pytest --maxfail=1 --disable-warnings -q
