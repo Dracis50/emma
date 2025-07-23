@@ -16,3 +16,9 @@ acme.json
 .env*
 pgdata/
 letsencrypt/
+
+# macOS
+*.DS_Store
+
+# Poetry backups
+*.bak
