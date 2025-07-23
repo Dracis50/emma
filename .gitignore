@@ -11,3 +11,8 @@ env/
 # docker
 *.log
 acme.json
+
+# Ne pas publier les secrets
+.env*
+pgdata/
+letsencrypt/
