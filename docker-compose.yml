@@ -1,39 +1,36 @@
+# docker-compose.yml
 
 services:
-  # --------------------- Auth API
+  db:
+    image: postgres:15-alpine
+    env_file: .env          # ← on ne garde QUE ça
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   auth:
+    build: ./services/auth_service
     depends_on:
       db:
-        condition: service_healthy
-    build:
-      context: ./services/auth_service      # <-- chemin du service
-      dockerfile: Dockerfile
+        condition: service_healthy     # ← attend le HC ci-dessus
+    env_file: .env                     # ← plus de doublons
+    networks: [backend]
     restart: unless-stopped
-
-    env_file: .env
-
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
-    depends_on:
-      - db
-    networks:
-      - backend
     labels:
       - traefik.enable=true
       - traefik.http.routers.auth.rule=Host(`auth.${DOMAIN}`)
       - traefik.http.routers.auth.entrypoints=websecure
       - traefik.http.routers.auth.tls.certresolver=le
       - traefik.http.services.auth.loadbalancer.server.port=8000
-
-  # --------------------- PostgreSQL
-  db:
-    image: postgres:15-alpine
-    env_file: .env
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks: [backend]
-    restart: always
+    # ↓ facultatif : port local 8000 pour debug hors-Traefik
+    ports:
+      - "8000:8000"
 
   # --------------------- Traefik reverse-proxy
   reverse-proxy:
