@@ -16,7 +16,7 @@ def get_password_hash(password: str) -> str:        # 👈 nouveau
 hash_password = get_password_hash                   # 👈 alias (facultatif)
 
 
-# JWT config (optionnel si déjà dans core/jwt.py)
+# JWT config (optionnel si déjà dans core.security.py)
 import os
 SECRET_KEY = os.getenv("SECRET_KEY") or "insecure-dev-key"
 ALGORITHM = "HS256"
@@ -24,6 +24,15 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
+
+def decode_access_token(token: str):
+    """Retourne le payload décodé ou None si signature /
+    date invalide."""
+    from jose import JWTError
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
     to_encode = data.copy()
     expire = datetime.utcnow() + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
