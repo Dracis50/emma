@@ -3,6 +3,7 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
+from typing import Optional
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -25,23 +26,23 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 def create_access_token(
     data: dict,
-    expires_delta: timedelta | None = None,
+    expires_delta: Optional[timedelta] = None,   # ✅ compatible Py-3.9
 ) -> str:
     """
-    Génére un JWT signé contenant le payload `data` + date d’expiration.
-    - `data` doit déjà contenir la clé « sub » (subject = email).
-    - `expires_delta` surcharge la durée par défaut (60 min).
+    Génère un JWT signé contenant `data` + date d’expiration.
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    to_encode["exp"] = expire
+    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_access_token(token: str) -> dict | None:
-    """Retourne le payload décodé ou `None` si signature / exp invalide."""
+def decode_access_token(token: str):
+    """
+    Décode le JWT ; renvoie le payload dict ou None si signature / date invalides.
+    """
     from jose import JWTError
 
     try:
