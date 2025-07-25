@@ -23,20 +23,28 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
-
-def decode_access_token(token: str):
-    """Retourne le payload décodé ou None si signature /
-    date invalide."""
-    from jose import JWTError
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        return None
+def create_access_token(
+    data: dict,
+    expires_delta: timedelta | None = None,
+) -> str:
+    """
+    Génére un JWT signé contenant le payload `data` + date d’expiration.
+    - `data` doit déjà contenir la clé « sub » (subject = email).
+    - `expires_delta` surcharge la durée par défaut (60 min).
+    """
     to_encode = data.copy()
     expire = datetime.utcnow() + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    to_encode["exp"] = expire
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict | None:
+    """Retourne le payload décodé ou `None` si signature / exp invalide."""
+    from jose import JWTError
+
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
