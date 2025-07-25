@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from auth_service.database import get_db
 from auth_service.models.user import User
-from auth_service.core.jwt import decode_access_token
+from auth_service.core.security import decode_access_token
 
 # Le bon endpoint (vérifie bien le chemin)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
