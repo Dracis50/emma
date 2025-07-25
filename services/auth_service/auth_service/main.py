@@ -20,6 +20,7 @@ def healthcheck():
 
     return {"status": "ok"}
 
+
 @app.on_event("startup")
 def _startup() -> None:
     """

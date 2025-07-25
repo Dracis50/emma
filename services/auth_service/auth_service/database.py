@@ -43,6 +43,7 @@ def init_db(retries: int = 10, delay: float = 2.0) -> None:
     raise RuntimeError("❌  Impossible de se connecter à PostgreSQL.")
 
 # Dépendance FastAPI
+
 def get_db():
     db = SessionLocal()
     try:
