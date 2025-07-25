@@ -26,34 +26,28 @@ jobs:
           --health-retries=5
 
     env:
-      # même format que l’app utilise
       DATABASE_URL: postgresql://emma:emma_db_devpass@localhost:5432/emma
-      # clé de test – jamais utilisée en prod
       SECRET_KEY: testsecret
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.9"
 
-      - name: Install Poetry
-        run: pip install poetry
+    - name: Install Poetry
+      run: pip install poetry
 
-      - name: Install dependencies
-        working-directory: services/auth_service
-        run: poetry install --no-interaction --no-ansi
+    - name: Install dependencies
+      working-directory: services/auth_service
+      run: poetry install --no-interaction --no-ansi
 
-      - name: Run Alembic migrations
-        working-directory: services/auth_service
-        run: poetry run alembic upgrade head
+    - name: Run lint
+      working-directory: services/auth_service
+      run: poetry run make lint    # adapte si ton Makefile est ailleurs
 
-      - name: Run lint
-        working-directory: services/auth_service
-        run: poetry run flake8 .
-
-      - name: Run tests
-        working-directory: services/auth_service
-        run: poetry run pytest --maxfail=1 --disable-warnings -q
+    - name: Run tests
+      working-directory: services/auth_service
+      run: poetry run pytest -q
