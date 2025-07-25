@@ -1,19 +1,17 @@
 # auth_service/api/v1/users.py
-
-from sqlalchemy.exc import IntegrityError
-from fastapi import APIRouter, HTTPException, Depends, status, Response
-from sqlalchemy.orm import Session
 from typing import List
 
-from auth_service.core.security import (
-)
-from auth_service.core.deps import get_current_user
-from auth_service.models.user import User
-from auth_service.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from auth_service.core.security import get_password_hash
+from auth_service.core.deps import get_current_user
+from auth_service.database import get_db
+from auth_service.models.user import User
+from auth_service.schemas.user import UserCreate, UserRead
 
 router = APIRouter(prefix="/users", tags=["users"])
-
 
 @router.get("/", response_model=List[UserRead])
 def list_users(db: Session = Depends(get_db)):
@@ -22,10 +20,8 @@ def list_users(db: Session = Depends(get_db)):
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    print(">>> POST /api/v1/users/ called", flush=True)
-    print("user=", user, flush=True)
     try:
-        hashed_password = hash_password(user.password)
+        hashed_password = get_password_hash(user.password)
         db_user = User(
             email=user.email,
             hashed_password=hashed_password,
@@ -43,13 +39,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already exists."
-        )
-    except Exception as e:
-        print("!!! Exception in create_user:", e, flush=True)
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal error: {str(e)}"
         )
 
 
@@ -74,4 +63,3 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.delete(user)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
