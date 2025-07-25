@@ -21,5 +21,5 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=401, detail="Incorrect email or password"
         )
-    token = create_access_token({"sub": str(user.id)})
+    token = create_access_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
