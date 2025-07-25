@@ -17,7 +17,8 @@ hash_password = get_password_hash                   # 👈 alias (facultatif)
 
 
 # JWT config (optionnel si déjà dans core/jwt.py)
-SECRET_KEY = "<CHANGER_MOI>"    # Mets une vraie clé forte plus tard !
+import os
+SECRET_KEY = os.getenv("SECRET_KEY") or "insecure-dev-key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

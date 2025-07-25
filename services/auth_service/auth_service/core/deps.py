@@ -8,7 +8,7 @@ from auth_service.models.user import User
 from auth_service.core.jwt import decode_access_token
 
 # Le bon endpoint (vérifie bien le chemin)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def get_current_user(

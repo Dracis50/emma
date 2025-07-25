@@ -10,6 +10,7 @@ from auth_service.core.security import (
 )
 from auth_service.core.deps import get_current_user
 from auth_service.models.user import User
+from auth_service.core.security import get_password_hash
 from auth_service.schemas.user import UserCreate, UserRead, Token
 from auth_service.database import get_db
 
@@ -79,17 +80,17 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post("/login", response_model=Token, status_code=status.HTTP_200_OK)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-):
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(
-        form_data.password, user.hashed_password
-    ):
-        raise HTTPException(
-            status_code=401, detail="Incorrect email or password"
-        )
-    access_token = create_access_token({"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+# DEPRECATED #@router.post("/login", response_model=Token, status_code=status.HTTP_200_OK)
+# DEPRECATED #def login(
+# DEPRECATED #    form_data: OAuth2PasswordRequestForm = Depends(),
+# DEPRECATED #    db: Session = Depends(get_db)
+# DEPRECATED #):
+# DEPRECATED #    user = db.query(User).filter(User.email == form_data.username).first()
+# DEPRECATED #    if not user or not verify_password(
+# DEPRECATED #        form_data.password, get_password_hash(user.password)
+# DEPRECATED #    ):
+# DEPRECATED #        raise HTTPException(
+# DEPRECATED #            status_code=401, detail="Incorrect email or password"
+# DEPRECATED #        )
+# DEPRECATED #    access_token = create_access_token({"sub": user.email})
+# DEPRECATED #    return {"access_token": access_token, "token_type": "bearer"}

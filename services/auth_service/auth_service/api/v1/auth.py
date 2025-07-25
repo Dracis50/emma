@@ -7,7 +7,7 @@ from auth_service.schemas.user import LoginRequest, Token
 from auth_service.models.user import User
 from auth_service.database import get_db
 from auth_service.core.security import verify_password
-from auth_service.core.jwt import create_access_token
+from auth_service.core.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

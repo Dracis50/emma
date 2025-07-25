@@ -22,3 +22,8 @@ letsencrypt/
 
 # Poetry backups
 *.bak
+
+# macOS & byte-code
+.DS_Store
+__pycache__/
+*.pyc

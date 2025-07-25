@@ -7,7 +7,7 @@ help:
 	@echo "  make logs       # Logs temps réel Docker"
 	@echo "  make build      # Rebuild les images Docker"
 	@echo "  make ps         # Liste les containers Docker"
-	@echo "  make shell      # Ouvre un shell dans le container auth-service"
+	@echo "  make shell      # Ouvre un shell dans le container auth"
 	@echo ""
 	@echo "Dev local :"
 	@echo "  make lint       # Lint le code Python"
@@ -34,7 +34,7 @@ ps:
 	docker compose ps
 
 shell:
-	docker compose exec auth-service /bin/bash
+	docker compose exec auth /bin/bash
 
 lint:
 	poetry run flake8 auth_service
