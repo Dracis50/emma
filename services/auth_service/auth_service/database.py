@@ -44,6 +44,7 @@ def init_db(retries: int = 10, delay: float = 2.0) -> None:
 
 # Dépendance FastAPI
 
+
 def get_db():
     db = SessionLocal()
     try:
