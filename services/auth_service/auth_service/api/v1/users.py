@@ -80,17 +80,3 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-# DEPRECATED #@router.post("/login", response_model=Token, status_code=status.HTTP_200_OK)
-# DEPRECATED #def login(
-# DEPRECATED #    form_data: OAuth2PasswordRequestForm = Depends(),
-# DEPRECATED #    db: Session = Depends(get_db)
-# DEPRECATED #):
-# DEPRECATED #    user = db.query(User).filter(User.email == form_data.username).first()
-# DEPRECATED #    if not user or not verify_password(
-# DEPRECATED #        form_data.password, get_password_hash(user.password)
-# DEPRECATED #    ):
-# DEPRECATED #        raise HTTPException(
-# DEPRECATED #            status_code=401, detail="Incorrect email or password"
-# DEPRECATED #        )
-# DEPRECATED #    access_token = create_access_token({"sub": user.email})
-# DEPRECATED #    return {"access_token": access_token, "token_type": "bearer"}
