@@ -12,8 +12,10 @@ app = FastAPI(title="EMMA Auth Service", version="0.1.0")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(auth.router,  prefix="/api/v1")
 
+
 @app.get("/healthz", include_in_schema=False)
 def healthcheck():
+
     return {"status": "ok"}
 
 @app.on_event("startup")

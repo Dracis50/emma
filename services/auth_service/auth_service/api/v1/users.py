@@ -6,15 +6,11 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from auth_service.core.security import (
-    hash_password, verify_password, create_access_token
 )
 from auth_service.core.deps import get_current_user
 from auth_service.models.user import User
-from auth_service.core.security import get_password_hash
-from auth_service.schemas.user import UserCreate, UserRead, Token
 from auth_service.database import get_db
 
-from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -78,5 +74,4 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.delete(user)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
 

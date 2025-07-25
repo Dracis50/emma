@@ -22,12 +22,13 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
+
 # 2️⃣  Fonction de bootstrap des tables
 def init_db(retries: int = 10, delay: float = 2.0) -> None:
+
     """
     Crée les tables. Ré-essaie tant que PostgreSQL n’est pas prêt.
     """
-    import auth_service.models.user  # assure l’import des modèles
 
     for attempt in range(1, retries + 1):
         try:

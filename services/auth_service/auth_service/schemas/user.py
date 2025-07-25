@@ -1,7 +1,6 @@
 # auth_service/schemas/user.py
 
 from pydantic import BaseModel, EmailStr
-from pydantic import EmailStr
 
 
 class UserBase(BaseModel):
