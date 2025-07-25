@@ -1,13 +1,13 @@
 name: CI
-        
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-          
+
 jobs:
-  test: 
+  test:
     runs-on: ubuntu-latest
 
     services:
@@ -16,38 +16,44 @@ jobs:
         env:
           POSTGRES_USER: emma
           POSTGRES_PASSWORD: emma_db_devpass
-          POSTGRES_DB: emma  
+          POSTGRES_DB: emma
         ports:
           - 5432:5432
         options: >-
           --health-cmd="pg_isready -U emma"
-          --health-interval=10s 
+          --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-    
+
     env:
-      DATABASE_URL: postgresql+psycopg2://emma:testpassword@localhost:5432/emma
-      JWT_SECRET: testsecret
-    
+      # même format que l’app utilise
+      DATABASE_URL: postgresql://emma:emma_db_devpass@localhost:5432/emma
+      # clé de test – jamais utilisée en prod
+      SECRET_KEY: testsecret
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
-        
-    - name: Install Poetry
-      run: pip install poetry
-          
-    - name: Install dependencies
-      run: poetry install --no-interaction --no-ansi
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
 
-    - name: Run Alembic migrations
-      run: poetry run alembic upgrade head
+      - name: Install Poetry
+        run: pip install poetry
 
-    - name: Run lint
-      run: make lint
-      
-    - name: Run tests
-      run: poetry run pytest --maxfail=1 --disable-warnings -q
+      - name: Install dependencies
+        working-directory: services/auth_service
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Run Alembic migrations
+        working-directory: services/auth_service
+        run: poetry run alembic upgrade head
+
+      - name: Run lint
+        working-directory: services/auth_service
+        run: poetry run flake8 .
+
+      - name: Run tests
+        working-directory: services/auth_service
+        run: poetry run pytest --maxfail=1 --disable-warnings -q
