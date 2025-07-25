@@ -6,6 +6,8 @@ from auth_service.api.v1 import users, auth
 from auth_service.database import init_db
 
 load_dotenv()
+
+
 app = FastAPI(title="EMMA Auth Service", version="0.1.0")
 
 # routes métiers

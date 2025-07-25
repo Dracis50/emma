@@ -1,7 +1,8 @@
 # auth_service/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-import os, urllib.parse as ul
+import os
+import urllib.parse as ul
 from sqlalchemy.exc import OperationalError
 import time
 
@@ -23,7 +24,6 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
 
-# 2️⃣  Fonction de bootstrap des tables
 def init_db(retries: int = 10, delay: float = 2.0) -> None:
 
     """

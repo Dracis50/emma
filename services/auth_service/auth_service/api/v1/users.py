@@ -11,7 +11,9 @@ from auth_service.database import get_db
 from auth_service.models.user import User
 from auth_service.schemas.user import UserCreate, UserRead
 
+
 router = APIRouter(prefix="/users", tags=["users"])
+
 
 @router.get("/", response_model=List[UserRead])
 def list_users(db: Session = Depends(get_db)):

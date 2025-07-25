@@ -14,11 +14,13 @@ def verify_password(plain_password, hashed_password):
 
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password: str) -> str:        # 👈 nouveau
+
+def get_password_hash(password: str) -> str:
 
     return pwd_context.hash(password)
 
-hash_password = get_password_hash                   # 👈 alias (facultatif)
+
+hash_password = get_password_hash
 
 
 # JWT config (optionnel si déjà dans core.security.py)
