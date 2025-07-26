@@ -5,6 +5,7 @@ import logging
 
 from auth_service.api.v1 import users, auth
 from auth_service.database import init_db
+from contextlib import asynccontextmanager
 
 load_dotenv()
 
@@ -19,7 +20,20 @@ logger = logging.getLogger("emma.auth")
 # ------------------------------------------------------------------ #
 
 
-app = FastAPI(title="EMMA Auth Service", version="0.1.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("⏳  Initialisation des tables…")
+    init_db()
+    logger.info("✅  Base prête.")
+    yield
+    # Ici tu pourrais fermer proprement des connexions, etc.
+
+
+app = FastAPI(
+    title="EMMA Auth Service", 
+    version="1.1.0",
+    lifespan=lifespan,
+)
 
 # routes métiers
 app.include_router(users.router, prefix="/api/v1")
@@ -30,11 +44,3 @@ app.include_router(auth.router,  prefix="/api/v1")
 def healthcheck():
 
     return {"status": "ok"}
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    """
-    Au démarrage de l’API on crée les tables si elles n’existent pas.
-    """
-    init_db()
