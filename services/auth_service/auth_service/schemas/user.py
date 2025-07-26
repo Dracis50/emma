@@ -1,5 +1,4 @@
 # auth_service/schemas/user.py
-
 from pydantic import BaseModel, EmailStr, constr
 
 
@@ -20,8 +19,8 @@ class UserRead(UserBase):
     is_admin: bool
     is_premium: bool
 
-    class Config:
-        orm_mode = True
+    # ✅ Pydantic v2 : active la lecture depuis un ORM
+    model_config = dict(from_attributes=True)
 
 
 class Token(BaseModel):
@@ -31,4 +30,5 @@ class Token(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
+    # Pas de contrainte ici → permet le 401 « Incorrect email or password »
     password: str
