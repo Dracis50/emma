@@ -14,12 +14,32 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> User:
-    payload = decode_access_token(token)
-    if payload is None or "sub" not in payload:
+    # 1) on valide signature + scope=access
+    payload = decode_access_token(token, expected_scope="access")
+    if payload is None:
         raise HTTPException(
             status_code=401, detail="Could not validate credentials"
         )
-    user = db.query(User).filter(User.email == payload["sub"]).first()
+
+    # 2) on cherche d’abord par id (sub), sinon par email
+    user = None
+
+    # sub doit idéalement contenir l’ID numérique
+    sub = payload.get("sub")
+    if sub is not None:
+        try:
+            user = db.query(User).filter(User.id == int(sub)).first()
+        except (ValueError, TypeError):
+            # sub n’était pas un entier → on tentera l’email
+            pass
+
+    if user is None and "email" in payload:
+        user = (
+            db.query(User)
+            .filter(User.email == payload["email"])
+            .first()
+        )
+
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user

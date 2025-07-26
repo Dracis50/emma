@@ -32,7 +32,24 @@ hash_password = get_password_hash  # alias rétro-compatibilité
 # --------------------------------------------------------------------------- #
 # JWT configuration
 # --------------------------------------------------------------------------- #
-SECRET_KEY = os.getenv("SECRET_KEY", "insecure-dev-key")
+def _get_secret() -> str:
+    env_key = os.getenv("SECRET_KEY")
+    if env_key:
+        return env_key
+
+    # Mode dev (pas de clé fournie) → on en forge une et on l’affiche
+    import secrets, warnings
+
+    random_key = secrets.token_urlsafe(64)
+    warnings.warn(
+        "SECRET_KEY manquant ! Clé aléatoire générée pour cette session :\n"
+        f"   {random_key}\n"
+        "⚠️  Ne faites *jamais* ça en production.",
+        RuntimeWarning,
+    )
+    return random_key
+
+SECRET_KEY: str = _get_secret()
 ALGORITHM = "HS256"
 
 # claims par défaut
