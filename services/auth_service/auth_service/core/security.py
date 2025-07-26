@@ -1,8 +1,10 @@
 """auth_service/core/security.py – helpers mot-de-passe + JWT"""
 
+from __future__ import annotations
+
 import os
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -24,29 +26,85 @@ def get_password_hash(password: str) -> str:
 hash_password = get_password_hash  # alias rétro-compatibilité
 
 # --------------------------------------------------------------------------- #
-# JWT helpers
+# JWT configuration
 # --------------------------------------------------------------------------- #
 SECRET_KEY = os.getenv("SECRET_KEY", "insecure-dev-key")
 ALGORITHM = "HS256"
+
+# claims par défaut
+ISSUER = "emma-auth-service"
+AUDIENCE = "emma-users"
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+REFRESH_TOKEN_EXPIRE_DAYS = 30
+
+
+# --------------------------------------------------------------------------- #
+# Token helpers
+# --------------------------------------------------------------------------- #
+def _build_claims(
+    data: Dict[str, Any],
+    expires_delta: timedelta,
+    scope: str,
+) -> Dict[str, Any]:
+    """Assemble les claims communs pour access / refresh."""
+    to_encode = data.copy()
+    to_encode.update(
+        {
+            "exp": datetime.utcnow() + expires_delta,
+            "iat": datetime.utcnow(),
+            "iss": ISSUER,
+            "aud": AUDIENCE,
+            "scope": scope,
+        }
+    )
+    return to_encode
 
 
 def create_access_token(
     data: Dict[str, Any],
     expires_delta: Optional[timedelta] = None,
 ) -> str:
-    """Génère un JWT signé contenant `data` et une date d’expiration."""
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    claims = _build_claims(
+        data=data,
+        expires_delta=expires_delta
+        or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        scope="access",
     )
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
-    """Décodage sécurisé ; retourne None si signature ou exp invalide."""
+def create_refresh_token(
+    data: Dict[str, Any],
+    expires_delta: Optional[timedelta] = None,
+) -> str:
+    claims = _build_claims(
+        data=data,
+        expires_delta=expires_delta
+        or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        scope="refresh",
+    )
+    return jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(
+    token: str,
+    expected_scope: str = "access",
+) -> Optional[Dict[str, Any]]:
+    """
+    Décode un JWT et valide iss / aud / scope.
+    Retourne le payload ou None si invalide / expiré.
+    """
     try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+            issuer=ISSUER,
+            audience=AUDIENCE,
+        )
+        if payload.get("scope") != expected_scope:
+            return None
+        return payload
     except JWTError:
         return None
