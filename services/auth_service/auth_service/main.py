@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="EMMA Auth Service", 
+    title="EMMA Auth Service",
     version="1.1.0",
     lifespan=lifespan,
 )
