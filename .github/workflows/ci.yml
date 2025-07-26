@@ -27,6 +27,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://emma:emma_db_devpass@localhost:5432/emma
+      POSTGRES_USER: emma
+      POSTGRES_PASSWORD: Pridnestrovxe1
       SECRET_KEY: testsecret
 
     steps:
