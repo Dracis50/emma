@@ -27,3 +27,7 @@ letsencrypt/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Runtime secrets
+secrets/
+
