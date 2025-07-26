@@ -12,11 +12,10 @@ from auth_service.core.security import (
 from auth_service.database import get_db
 from auth_service.models.user import User
 from auth_service.schemas.user import LoginRequest, TokenPair
+from auth_service.main import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# on importe le limiter qu’on a instancié dans main.py
-from auth_service.main import limiter
 
 # ------------- stockage naïf des RT rotés -------------
 REFRESH_TOKEN_BLACKLIST: set[str] = set()
