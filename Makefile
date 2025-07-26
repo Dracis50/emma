@@ -37,25 +37,26 @@ shell:
 	docker compose exec auth /bin/bash
 
 lint:
-	poetry run flake8 auth_service
+	cd services/auth_service && poetry run flake8 auth_service
 
 test:
-	poetry run pytest
+	cd services/auth_service && poetry run pytest -q
 
 run:
-	poetry run uvicorn auth_service.main:app --reload
+	cd services/auth_service && poetry run uvicorn auth_service.main:app --reload
 
 migrate:
-	poetry run alembic upgrade head
+	cd services/auth_service && poetry run alembic upgrade head
 
 reset-db:
-	psql -U emma -h localhost -c "DROP DATABASE IF EXISTS emma;"
-	psql -U emma -h localhost -c "CREATE DATABASE emma;"
-	poetry run alembic upgrade head
+        docker compose exec -T db psql -U $$POSTGRES_USER -d postgres -c "DROP DATABASE IF EXISTS $$POSTGRES_DB;"
+	docker compose exec -T db psql -U $$POSTGRES_USER -d postgres -c "CREATE DATABASE $$POSTGRES_DB;"
+	cd services/auth_service && poetry run alembic upgrade head
 
 format:
-	poetry run black auth_service
+	cd services/auth_service && poetry run black auth_service
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	find . -type f -name "*.pyc" -delete
+
