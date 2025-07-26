@@ -32,7 +32,7 @@ services:
       - traefik.http.routers.auth.entrypoints=websecure
       - traefik.http.routers.auth.tls.certresolver=le
       - traefik.http.services.auth.loadbalancer.server.port=8000
-    # ↓ facultatif : port local 8000 pour debug hors-Traefik
+    # pour exposer le port 8000 en local (tests, debug)
     ports:
       - "8000:8000"
 

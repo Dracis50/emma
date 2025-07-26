@@ -1,5 +1,5 @@
 # auth_service/api/v1/auth.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -15,6 +15,9 @@ from auth_service.schemas.user import LoginRequest, TokenPair
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# on importe le limiter qu’on a instancié dans main.py
+from auth_service.main import limiter
+
 # ------------- stockage naïf des RT rotés -------------
 REFRESH_TOKEN_BLACKLIST: set[str] = set()
 
@@ -23,7 +26,12 @@ REFRESH_TOKEN_BLACKLIST: set[str] = set()
 # POST /login
 # ──────────────────────────
 @router.post("/login", response_model=TokenPair, status_code=status.HTTP_200_OK)
-def login(req: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(
+    request: Request,
+    req: LoginRequest,
+    db: Session = Depends(get_db)
+):
     user: User | None = (
         db.query(User).filter(User.email == req.email).first()
     )

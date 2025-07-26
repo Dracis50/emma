@@ -1,5 +1,10 @@
 # auth_service/main.py
 from fastapi import FastAPI
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 from dotenv import load_dotenv
 import logging
 
@@ -29,11 +34,20 @@ async def lifespan(app: FastAPI):
     # Ici tu pourrais fermer proprement des connexions, etc.
 
 
+# instancie SlowAPI limiter (IP-based)
+limiter = Limiter(key_func=get_remote_address)
+
+
 app = FastAPI(
     title="EMMA Auth Service",
     version="1.1.0",
     lifespan=lifespan,
 )
+
+# active le rate‐limit middleware
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # routes métiers
 app.include_router(users.router, prefix="/api/v1")
