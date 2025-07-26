@@ -1,13 +1,14 @@
 from fastapi.testclient import TestClient
 from auth_service.main import app
 from auth_service.core.security import get_password_hash
-from auth_service.database import SessionLocal
+from auth_service.database import SessionLocal, init_db
 from auth_service.models.user import User
 
 client = TestClient(app)
 
 
 def _ensure_demo_user():
+    init_db()
     db = SessionLocal()
     if not db.query(User).filter_by(email="demo@example.com").first():
         db.add(
