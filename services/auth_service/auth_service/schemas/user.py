@@ -1,6 +1,6 @@
 # auth_service/schemas/user.py
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 
 
 class UserBase(BaseModel):
@@ -8,7 +8,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    password: constr(min_length=8)
     is_active: bool = True
     is_admin: bool = False
     is_premium: bool = False
@@ -31,4 +31,4 @@ class Token(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: constr(min_length=8)
