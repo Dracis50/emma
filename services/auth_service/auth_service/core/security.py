@@ -34,6 +34,7 @@ hash_password = get_password_hash  # alias rétro-compatibilité
 # JWT configuration
 # --------------------------------------------------------------------------- #
 
+
 def _get_secret() -> str:
     env_key = os.getenv("SECRET_KEY")
     if env_key:
@@ -41,6 +42,7 @@ def _get_secret() -> str:
 
     # Mode dev (pas de clé fournie) → on en forge une et on l’affiche
     import secrets, warnings
+    import warnings
 
     random_key = secrets.token_urlsafe(64)
     warnings.warn(
