@@ -41,7 +41,7 @@ def _get_secret() -> str:
         return env_key
 
     # Mode dev (pas de clé fournie) → on en forge une et on l’affiche
-    import secrets, warnings
+    import secrets
     import warnings
 
     random_key = secrets.token_urlsafe(64)
