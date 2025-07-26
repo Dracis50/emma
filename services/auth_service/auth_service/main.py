@@ -1,11 +1,22 @@
 # auth_service/main.py
 from fastapi import FastAPI
 from dotenv import load_dotenv
+import logging
 
 from auth_service.api.v1 import users, auth
 from auth_service.database import init_db
 
 load_dotenv()
+
+
+# ------------------------------------------------------------------ #
+# Logging minimal : niveau INFO, horodatage court
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("emma.auth")
+# ------------------------------------------------------------------ #
 
 
 app = FastAPI(title="EMMA Auth Service", version="0.1.0")
