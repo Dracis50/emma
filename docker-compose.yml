@@ -3,10 +3,12 @@
 services:
   db:
     image: postgres:15-alpine
-    env_file: .env          # ← on ne garde QUE ça
+    env_file: .env
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     networks: [backend]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
@@ -18,8 +20,10 @@ services:
     build: ./services/auth_service
     depends_on:
       db:
-        condition: service_healthy     # ← attend le HC ci-dessus
-    env_file: .env                     # ← plus de doublons
+        condition: service_healthy
+    env_file: .env
+    secrets:
+      - auth_secret_key
     networks: [backend]
     restart: unless-stopped
     labels:
@@ -70,3 +74,8 @@ networks:
 volumes:
   pgdata:
   letsencrypt:
+
+secrets:
+  auth_secret_key:
+    # on lit la clé depuis un fichier (non-commit ; ajouté par Ansible/CI)
+    file: ./secrets/SECRET_KEY
