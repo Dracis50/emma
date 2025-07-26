@@ -34,7 +34,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        print(">>> User created OK", flush=True)
         return db_user
     except IntegrityError:
         db.rollback()
