@@ -1,6 +1,7 @@
 # auth_service/api/v1/auth.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from auth_service.core.security import (
     verify_password,
@@ -51,13 +52,14 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 # ──────────────────────────
 # POST /refresh
 # ──────────────────────────
-class RefreshRequest(LoginRequest.model_construct(__pydantic_fields_set__={})) :  # reuse BaseModel machinery
+class RefreshRequest(BaseModel):
+    """Payload minimal pour /refresh."""
     refresh_token: str
 
 
 @router.post(
     "/refresh",
-    response_model=AccessToken,
+    response_model=TokenPair,
     status_code=status.HTTP_200_OK,
 )
 def refresh(req: RefreshRequest):
