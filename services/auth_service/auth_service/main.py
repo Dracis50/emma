@@ -6,9 +6,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from dotenv import load_dotenv
-import logging
 
-from auth_service.api.v1 import users, auth
+import logging
 from auth_service.database import init_db
 from contextlib import asynccontextmanager
 
@@ -48,6 +47,9 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+
+# importe les routeurs *après* avoir défini `limiter` et le middleware
+from auth_service.api.v1 import users, auth  # noqa: E402
 
 # routes métiers
 app.include_router(users.router, prefix="/api/v1")

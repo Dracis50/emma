@@ -1,10 +1,12 @@
 # auth_service/database.py
+import os
+import time
+import urllib.parse as ul
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-import os
-import urllib.parse as ul
 from sqlalchemy.exc import OperationalError
-import time
+
 
 # 1️⃣  Priorité à DATABASE_URL si elle existe
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
