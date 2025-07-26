@@ -8,7 +8,10 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: constr(min_length=8)
+    # Au login on ne filtre pas sur la longueur : une chaîne vide déclenchera
+    # déjà un 422 « value_error.missing ».  
+    # Laisse la logique d’auth renvoyer 401 si le mot de passe est faux.
+    password: str
     is_active: bool = True
     is_admin: bool = False
     is_premium: bool = False
