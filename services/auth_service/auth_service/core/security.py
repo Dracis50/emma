@@ -6,7 +6,8 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from jose import JWTError, jwt
+from jose import JWTError
+from jose import jwt
 from passlib.context import CryptContext
 
 # --------------------------------------------------------------------------- #
@@ -32,6 +33,7 @@ hash_password = get_password_hash  # alias rétro-compatibilité
 # --------------------------------------------------------------------------- #
 # JWT configuration
 # --------------------------------------------------------------------------- #
+
 def _get_secret() -> str:
     env_key = os.getenv("SECRET_KEY")
     if env_key:
@@ -48,6 +50,7 @@ def _get_secret() -> str:
         RuntimeWarning,
     )
     return random_key
+
 
 SECRET_KEY: str = _get_secret()
 ALGORITHM = "HS256"

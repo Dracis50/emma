@@ -11,11 +11,7 @@ from auth_service.core.security import (
 )
 from auth_service.database import get_db
 from auth_service.models.user import User
-from auth_service.schemas.user import (
-    LoginRequest,
-    TokenPair,
-    AccessToken,
-)
+from auth_service.schemas.user import LoginRequest, TokenPair
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
