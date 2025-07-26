@@ -12,7 +12,7 @@ if not SQLALCHEMY_DATABASE_URL:
     # Sinon on reconstruit l’URL à partir des composantes
     DB_USER = os.getenv("POSTGRES_USER", "postgres")
     DB_PASS = ul.quote_plus(os.getenv("POSTGRES_PASSWORD", "postgres"))
-    DB_HOST = os.getenv("POSTGRES_HOST", "db")          # ← par défaut “db”
+    DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
     DB_PORT = os.getenv("POSTGRES_PORT", "5432")
     DB_NAME = os.getenv("POSTGRES_DB", "emma")
     SQLALCHEMY_DATABASE_URL = (
