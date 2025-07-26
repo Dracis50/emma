@@ -19,16 +19,26 @@ class UserRead(UserBase):
     is_admin: bool
     is_premium: bool
 
-    # ✅ Pydantic v2 : active la lecture depuis un ORM
-    model_config = dict(from_attributes=True)
+    model_config = dict(from_attributes=True)  # Pydantic v2 – ORM mode
 
 
-class Token(BaseModel):
+# ──────────────────────
+# Tokens & payloads
+# ──────────────────────
+class TokenPair(BaseModel):
+    """Réponse standard : access + refresh."""
     access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class AccessToken(BaseModel):
+    """Réponse d’un /refresh : nouveau token d’accès (et rotation RT)."""
+    access_token: str
+    refresh_token: str
     token_type: str = "bearer"
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    # Pas de contrainte ici → permet le 401 « Incorrect email or password »
-    password: str
+    password: str  # pas de min_length ici → renvoie 401 si mauvais
