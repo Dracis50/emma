@@ -11,17 +11,18 @@ from auth_service.database import get_db
 from auth_service.models.user import User
 from auth_service.schemas.user import UserCreate, UserRead
 
-
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", response_model=List[UserRead])
 def list_users(db: Session = Depends(get_db)):
+    """Retourne la liste complète des utilisateurs."""
     return db.query(User).all()
 
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    """Crée un nouvel utilisateur avec mot de passe hashé."""
     try:
         hashed_password = get_password_hash(user.password)
         db_user = User(
@@ -39,17 +40,19 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Email already exists."
+            detail="Email already exists.",
         )
 
 
 @router.get("/me", response_model=UserRead)
 def read_users_me(current_user: User = Depends(get_current_user)):
+    """Retourne le profil de l’utilisateur authentifié."""
     return current_user
 
 
 @router.get("/{user_id}", response_model=UserRead)
 def get_user(user_id: int, db: Session = Depends(get_db)):
+    """Retourne un utilisateur par son id."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -58,6 +61,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
+    """Supprime un utilisateur existant."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
