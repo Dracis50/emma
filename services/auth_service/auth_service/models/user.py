@@ -1,14 +1,14 @@
+from dataclasses import dataclass, field
 import datetime as dt
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from auth_service.database import Base
+from typing import Optional
 
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False, index=True)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
-    is_premium = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=dt.datetime.utcnow)
+@dataclass
+class User:
+    """Simple data class to represent a user profile."""
+    id: Optional[int] = None
+    email: str = ""
+    hashed_password: str = ""
+    is_active: bool = True
+    is_admin: bool = False
+    is_premium: bool = False
+    created_at: dt.datetime = field(default_factory=dt.datetime.utcnow)
