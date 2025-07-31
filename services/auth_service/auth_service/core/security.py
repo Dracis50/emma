@@ -1,136 +1,71 @@
-"""auth_service/core/security.py – helpers mot-de-passe + JWT"""
-
-from __future__ import annotations
+"""Security utilities for password hashing and opaque token generation.
+This module replaces external dependencies like passlib and python-jose with
+simple in-memory implementations suitable for testing and development.
+"""
 
 import os
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+import secrets
+import hashlib
+import datetime as dt
+from typing import Dict, Any, Optional
+from fastapi import HTTPException, status
 
-from jose import JWTError
-from jose import jwt
-from passlib.context import CryptContext
+# Secret key for salting password hashes and signing tokens
+SECRET_KEY: str = os.getenv("SECRET_KEY", "supersecretkey")
+# Default expiration durations (in minutes)
+ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour
+REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
-# --------------------------------------------------------------------------- #
-# Password hashing : argon2 par défaut, encore capable de vérifier du bcrypt
-# --------------------------------------------------------------------------- #
-pwd_context = CryptContext(
-    schemes=["argon2", "bcrypt"],  # ordre = préférence
-    default="argon2",
-    deprecated="auto",
-)
+# In-memory token store. Each token maps to its payload, expiry and scope.
+_TOKEN_STORE: Dict[str, Dict[str, Any]] = {}
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a plain password against a hashed password."""
+    return get_password_hash(plain_password) == hashed_password
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    """Hash a password using SHA-256 with a secret key salt."""
+    return hashlib.sha256((password + SECRET_KEY).encode()).hexdigest()
 
 
-hash_password = get_password_hash  # alias rétro-compatibilité
-
-# --------------------------------------------------------------------------- #
-# JWT configuration
-# --------------------------------------------------------------------------- #
-
-
-def _get_secret() -> str:
-    env_key = os.getenv("SECRET_KEY")
-    if env_key:
-        return env_key
-
-    # Mode dev (pas de clé fournie) → on en forge une et on l’affiche
-    import secrets
-    import warnings
-
-    random_key = secrets.token_urlsafe(64)
-    warnings.warn(
-        "SECRET_KEY manquant ! Clé aléatoire générée pour cette session :\n"
-        f"   {random_key}\n"
-        "⚠️  Ne faites *jamais* ça en production.",
-        RuntimeWarning,
-    )
-    return random_key
+def _create_token(data: Dict[str, Any], expires_delta: dt.timedelta, scope: str) -> str:
+    """Create a new opaque token and store it in the in-memory token store."""
+    token = secrets.token_urlsafe(32)
+    expire = dt.datetime.utcnow() + expires_delta
+    # Store payload and metadata
+    _TOKEN_STORE[token] = {"payload": data, "expire": expire, "scope": scope}
+    return token
 
 
-SECRET_KEY: str = _get_secret()
-ALGORITHM = "HS256"
-
-# claims par défaut
-ISSUER = "emma-auth-service"
-AUDIENCE = "emma-users"
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-REFRESH_TOKEN_EXPIRE_DAYS = 30
+def create_access_token(data: Dict[str, Any], expires_delta: Optional[dt.timedelta] = None) -> str:
+    """Generate a new access token for the given payload."""
+    if expires_delta is None:
+        expires_delta = dt.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    return _create_token(data, expires_delta, scope="access")
 
 
-# --------------------------------------------------------------------------- #
-# Token helpers
-# --------------------------------------------------------------------------- #
-def _build_claims(
-    data: Dict[str, Any],
-    expires_delta: timedelta,
-    scope: str,
-) -> Dict[str, Any]:
-    """Assemble les claims communs pour access / refresh."""
-    to_encode = data.copy()
-    to_encode.update(
-        {
-            "exp": datetime.utcnow() + expires_delta,
-            "iat": datetime.utcnow(),
-            "iss": ISSUER,
-            "aud": AUDIENCE,
-            "scope": scope,
-        }
-    )
-    return to_encode
+def create_refresh_token(data: Dict[str, Any], expires_delta: Optional[dt.timedelta] = None) -> str:
+    """Generate a new refresh token for the given payload."""
+    if expires_delta is None:
+        expires_delta = dt.timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    return _create_token(data, expires_delta, scope="refresh")
 
 
-def create_access_token(
-    data: Dict[str, Any],
-    expires_delta: Optional[timedelta] = None,
-) -> str:
-    claims = _build_claims(
-        data=data,
-        expires_delta=expires_delta
-        or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-        scope="access",
-    )
-    return jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
+def decode_access_token(token: str, scope: str = "access") -> Dict[str, Any]:
+    """Decode an opaque token and return its payload if valid.
 
-
-def create_refresh_token(
-    data: Dict[str, Any],
-    expires_delta: Optional[timedelta] = None,
-) -> str:
-    claims = _build_claims(
-        data=data,
-        expires_delta=expires_delta
-        or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-        scope="refresh",
-    )
-    return jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def decode_access_token(
-    token: str,
-    expected_scope: str = "access",
-) -> Optional[Dict[str, Any]]:
+    Raises HTTPException if the token is invalid, expired, or the scope
+    does not match.
     """
-    Décode un JWT et valide iss / aud / scope.
-    Retourne le payload ou None si invalide / expiré.
-    """
-    try:
-        payload = jwt.decode(
-            token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM],
-            issuer=ISSUER,
-            audience=AUDIENCE,
-        )
-        if payload.get("scope") != expected_scope:
-            return None
-        return payload
-    except JWTError:
-        return None
+    token_data = _TOKEN_STORE.get(token)
+    if not token_data or token_data.get("scope") != scope:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+    if dt.datetime.utcnow() > token_data.get("expire"):
+        # Remove expired token
+        _TOKEN_STORE.pop(token, None)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+
+    return token_data.get("payload", {})
